@@ -41,15 +41,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# renderLib
-add_library(renderLib
-    renderLib/vec3.cpp
-    renderLib/vec3.h
-)
-target_include_directories(renderLib PUBLIC
-    ${CMAKE_SOURCE_DIR}
-)
-
 # --------------------------------------------------------------------
 # PNG and ZLIB
 #
@@ -95,6 +86,9 @@ find_package(glfw3 CONFIG REQUIRED)
 
 # Add the src directory to build the library.
 add_subdirectory(src)
+
+# Renderer library
+add_subdirectory(renderLib)
 
 # Some examples
 add_subdirectory(examples)

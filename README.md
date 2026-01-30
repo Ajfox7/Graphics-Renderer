@@ -1,6 +1,6 @@
-# vec3 Library
+# Graphics Renderer
 
-C++ vector math library implementing a 3-component vector 'vec3' and using Catch2 unit testing.
+C++ graphics renderer using Catch2 unit testing.
 
 ## Requirements
 

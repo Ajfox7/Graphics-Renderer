@@ -2,6 +2,7 @@
 #include "png++/png.hpp"
 #include <algorithm>
 #include "PerspectiveCamera.h"
+#include "Sphere.h"
 
 Framebuffer::Framebuffer(int width, int height) {
     this->width = width;
@@ -47,8 +48,7 @@ void Framebuffer::exportAsPNG( std::string filename ) {
         png::byte g = static_cast<png::byte>(std::clamp( color.y() * 255.0f, 0.0f, 255.0f ));
         png::byte b = static_cast<png::byte>(std::clamp( color.z() * 255.0f, 0.0f, 255.0f ));
 
-        // The origin for indexing the height is in lower left...
-        imData[y][x] = png::rgb_pixel( r, g, b );
+        imData[height-1-y][x] = png::rgb_pixel( r, g, b );
     }
     imData.write( filename );
 }
@@ -61,21 +61,27 @@ int main(int argc, char* argv[]) {
     Framebuffer fb;
     PerspectiveCamera p(800,600);
 
+    Sphere s = Sphere(0.055f, point3(0,0,-1) );
+
     for(int j=0; j<600; ++j){
         for(int i=0; i<800; ++i){
             Ray r = p.generateRay((float)i, (float)j);
 
-            //convert Ray direction to color
-            vec3 d = unit_vector(r.direction());
-            vec3 color = vec3( 0.5f*(d.x()+1.0f), 0.5f*(d.y()+1.0f), 0.5f*(d.z()+1.0f) );
+            //Backgorund color
+            vec3 color = vec3( 1.0f,1.0f,1.0f );
+
+            if(s.intersect(r)){
+                color = vec3(1.0f, 0.0f, 0.0f);
+            }
+
             fb.SetPixelColor(i, j, color);
         }
     }
     fb.exportAsPNG("perspective_camera_output.png");
 
     Framebuffer fb2(200,200);
-    PerspectiveCamera p2( vec3(1,0,1), vec3(1,0,-1), vec3(0,1,0),
-                             0.75f, 0.5f, 0.5f,
+    PerspectiveCamera p2( vec3(14.0,15.0,16.0), vec3(42.0,14.3,18.6), vec3(0,1,0),
+                             0.0625f, 0.5f, 0.5f,
                              200, 200 );
     for(int j=0; j<200; ++j){
         for(int i=0; i<200; ++i){

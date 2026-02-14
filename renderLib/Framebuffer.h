@@ -11,7 +11,10 @@ class Framebuffer{
         void clear( vec3 color );
         void clearGradient( vec3 topColor, vec3 bottomColor );
         void exportAsPNG( std::string filename );
-        void SetPixelColor(int x, int y, vec3 color);
+        void setPixelColor(int x, int y, vec3 color);
+
+        int getWidth(){return this->width;}
+        int getHeight(){return this->height;}
 
     private:
         int width;

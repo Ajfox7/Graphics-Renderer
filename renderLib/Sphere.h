@@ -7,15 +7,41 @@ class Sphere: public Shape {
     public:
         Sphere(): radius(1.0f), center(point3(0,0,-1)) {}
 
-        Sphere(float radius, point3 center) : radius(radius), center(center) {}
+        Sphere(float r, const vec3& c)
+        : center(c), radius(r), shader(nullptr) {}
 
-        bool intersect(const Ray& r) override {
+        Sphere(float radius, point3 center, std::shared_ptr<Shader> s) : radius(radius), center(center), shader(s){}
+
+        bool intersect(const Ray& r,const float tmin, float& tmax, HitRecord& rec) const override {
             vec3 oc = r.origin() - center;
             float a = dot(r.direction(), r.direction());
-            float b = 2.0f * dot(oc, r.direction());
+            float half_b = dot(oc, r.direction());
             float c = dot(oc, oc) - radius * radius;
-            float discriminant = b * b - 4 * a * c;
-            return (discriminant >= 0);
+            float discriminant = half_b * half_b - a * c;
+
+            if (discriminant < 0) {
+                return false;
+            }
+
+            float sqrt_discriminant = sqrt(discriminant);
+
+            float root = (half_b - sqrt_discriminant) / a;
+            if (root < tmin || root > tmax) {
+                root = (-half_b + sqrt_discriminant) / a;
+                if (root < tmin || root > tmax)
+                    return false;
+            }
+
+            rec.t = root;
+            rec.point = r.at(root);
+
+            vec3 outwardNormal = (rec.point - center) / radius;
+            rec.setFaceNormal(r, outwardNormal);
+
+            rec.shape = std::const_pointer_cast<Shape>(shared_from_this());
+            rec.shader = shader;
+
+            return true;
         }
 
         //getters
@@ -25,4 +51,5 @@ class Sphere: public Shape {
     private:
         float radius;
         point3 center;
+        std::shared_ptr<Shader> shader;
 };

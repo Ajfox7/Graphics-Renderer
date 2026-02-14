@@ -81,31 +81,11 @@ find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
-# not using Vulkan at the moment
-# find_package(Vulkan OPTIONAL)
-
-# Add the src directory to build the library.
-add_subdirectory(src)
-
 # Renderer library
 add_subdirectory(renderLib)
 
-# Some examples
-add_subdirectory(examples)
-
-#
-# Renderer code
-#
-# Create your rendering library here....
-
-
-#
-# OpenGL Example
-#
-# This builds a simple OpenGL example that you can use to get started with OpenGL.
-#
-add_subdirectory(OpenGL)
-# add_subdirectory(Vulkan)
+# Add the src directory to build the library.
+add_subdirectory(src)
 
 #
 # Unit Tests - by enabling testing with cmake, we can create a target that lets unit tests be run. After re-building

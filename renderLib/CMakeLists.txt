@@ -1,18 +1,27 @@
-include_directories(${CMAKE_SOURCE_DIR}/src)
-
-add_executable(Framebuffer
-  Framebuffer.cpp
-)
-target_link_libraries(Framebuffer cs4212-util)
-target_link_libraries(Framebuffer ${Boost_PROGRAM_OPTIONS_LIBRARIES})
-target_link_libraries(Framebuffer PNG::PNG)
-target_link_libraries(Framebuffer ZLIB::ZLIB)
-
 add_library(renderLib
-    vec3.cpp
+    BlinnPhongShader.h
+    Camera.h
+    Framebuffer.cpp
+    Framebuffer.h
+    hit_record.h
+    LambertianShader.h
+    PerspectiveCamera.h
+    Ray.h
+    Scene.h
+    Shader.h
+    Shape.h
+    Sphere.h
+    Triangle.h
     vec3.h
 )
 
 target_include_directories(renderLib PUBLIC
-    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/external
+)
+
+target_link_libraries(renderLib
+    PUBLIC
+        PNG::PNG
+        ZLIB::ZLIB
 )

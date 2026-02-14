@@ -1,15 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <renderLib/Sphere.h>
-#include <renderLib/Ray.h>
-#include <renderLib/vec3.h>
+#include "Sphere.h"
+#include "Ray.h"
+#include "vec3.h"
+#include "hit_record.h"
 
 TEST_CASE( "Sphere Intersection Test - Hit" )
 {
     Sphere sphere(1.0f, point3(0,0,-5));
     Ray ray(point3(0,0,0), vec3(0,0,-1));
 
-    bool hit = sphere.intersect(ray);
+    float tmax = FLT_MAX;
+    HitRecord rec;
+    bool hit = sphere.intersect(ray,1, tmax, rec);
 
     REQUIRE(hit == true);
 }
@@ -18,7 +21,9 @@ TEST_CASE( "Sphere Intersection Test - Miss" )
     Sphere sphere(1.0f, point3(0,0,-5));
     Ray ray(point3(0,0,0), vec3(0,1,0));
 
-    bool hit = sphere.intersect(ray);
+    float tmax = FLT_MAX;
+    HitRecord rec;
+    bool hit = sphere.intersect(ray,1, tmax, rec);
 
     REQUIRE(hit == false);
 }
@@ -27,7 +32,9 @@ TEST_CASE( "Sphere Intersection Test - Tangent" )
     Sphere sphere(1.0f, point3(0,0,-5));
     Ray ray(point3(1,0,0), vec3(0,0,-1));
 
-    bool hit = sphere.intersect(ray);
+    float tmax = FLT_MAX;
+    HitRecord rec;
+    bool hit = sphere.intersect(ray,1, tmax, rec);
 
     REQUIRE(hit == true);
 }

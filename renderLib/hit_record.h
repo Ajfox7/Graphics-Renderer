@@ -17,6 +17,7 @@ struct HitRecord {
     vec3 viewDir;
     vec3 lightPos;
     vec3 lightColor;
+    bool inShadow = false;
 
     void setFaceNormal(const Ray& r, const vec3& outwardNormal) {
         frontFace = dot(r.direction(), outwardNormal) < 0;

@@ -13,6 +13,10 @@ class Lambertian : public Shader {
             vec3 L = unit_vector(h.lightPos - h.point);
             float NdotL = std::max(dot(h.normal, L), 0.0f);
 
+            if(h.inShadow) {
+                return vec3(0, 0, 0) + albedo * h.lightColor * NdotL * 0.5f; 
+            }
+
             return albedo * h.lightColor * NdotL;
         }
 };

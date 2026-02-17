@@ -11,7 +11,7 @@ class Camera {
 
         Camera(int pixel_nx, int pixel_ny )
             : position(0, 0, 0), U(1, 0, 0), V(0, 1, 0), W(0, 0, 1),
-            focalLength(1.0f), imageplaneWidth(0.25f), imageplaneHeight(0.25f),
+            focalLength(1.0f),
             nx(pixel_nx), ny(pixel_ny)
          {
             imageplaneWidth= 0.25f;

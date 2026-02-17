@@ -47,7 +47,7 @@ void Framebuffer::exportAsPNG( std::string filename ) {
         png::byte g = static_cast<png::byte>(std::clamp( color.y() * 255.0f, 0.0f, 255.0f ));
         png::byte b = static_cast<png::byte>(std::clamp( color.z() * 255.0f, 0.0f, 255.0f ));
 
-        imData[y][x] = png::rgb_pixel( r, g, b );
+        imData[imData.get_height() - 1 -y][x] = png::rgb_pixel( r, g, b );
     }
     imData.write( filename );
 }

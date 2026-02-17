@@ -47,4 +47,20 @@ class Scene {
             }
             return hitAnything;
     }
+
+    bool isInShadow(const vec3& point, const std::shared_ptr<Shape>& ignore) const {
+            vec3 lightDir = unit_vector(light.position - point);
+            Ray shadowRay(point + 0.001f * lightDir, lightDir); 
+            float maxDist = (light.position - point).length();
+            
+            HitRecord tempRec;
+
+            for (const auto& obj : objects) {
+                if (obj == ignore) continue;
+                if (obj->intersect(shadowRay, 0.001f, maxDist, tempRec)) {
+                    return true; 
+                }
+            }
+            return false; 
+        }
 };

@@ -22,6 +22,10 @@ class BlinnPhong : public Shader {
             vec3 diffuse  = diffuseColor  * h.lightColor * NdotL;
             vec3 specular = specularColor * h.lightColor * std::pow(NdotH, shininess);
 
+            if(h.inShadow) {
+                return vec3(0, 0, 0) + diffuse * 0.5f; // simple shadow attenuation (reduce diffuse, remove specular)
+            }
+
             return diffuse + specular;
         }
 };

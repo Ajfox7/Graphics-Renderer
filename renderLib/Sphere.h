@@ -25,7 +25,7 @@ class Sphere: public Shape {
 
             float sqrt_discriminant = sqrt(discriminant);
 
-            float root = (half_b - sqrt_discriminant) / a;
+            float root = (-half_b - sqrt_discriminant) / a;
             if (root < tmin || root > tmax) {
                 root = (-half_b + sqrt_discriminant) / a;
                 if (root < tmin || root > tmax)

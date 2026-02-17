@@ -1,6 +1,6 @@
 # Graphics Renderer
 
-C++ graphics renderer with ray tracing and sphere objects. This project uses Catch2 unit testing.
+C++ graphics renderer with ray tracing, shading, and multiple objects. This project uses Catch2 unit testing.
 
 ## Requirements
 

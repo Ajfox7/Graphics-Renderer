@@ -1,7 +1,6 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
-#include "vec3.h"
 #include <vector>
 
 class Framebuffer{

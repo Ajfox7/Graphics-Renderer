@@ -1,6 +1,5 @@
 #pragma once
 #include "Shader.h"
-#include "hit_record.h"
 
 class Lambertian : public Shader {
     public:
@@ -9,14 +8,15 @@ class Lambertian : public Shader {
         Lambertian(const vec3& color)
         : albedo(color) {}
 
-        vec3 rayColor(const HitRecord& h) override {
-            vec3 L = unit_vector(h.lightPos - h.point);
+        vec3 rayColor(const HitRecord& h, const Scene& scene, int depth) override {
+            
+            vec3 L = unit_vector(scene.light.position - h.point);
             float NdotL = std::max(dot(h.normal, L), 0.0f);
 
             if(h.inShadow) {
-                return vec3(0, 0, 0) + albedo * h.lightColor * NdotL * 0.5f; 
+                return vec3(0, 0, 0) + albedo * scene.light.color * NdotL * 0.5f; 
             }
 
-            return albedo * h.lightColor * NdotL;
+            return albedo * scene.light.color * NdotL;
         }
 };

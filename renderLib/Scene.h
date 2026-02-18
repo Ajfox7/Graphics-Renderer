@@ -2,8 +2,9 @@
 #include <vector>
 #include <memory>
 #include "Shape.h"
-#include "hit_record.h"
+#include "HitRecord.h"
 #include "Camera.h"
+#include "Shader.h"
 
 struct PointLight {
     vec3 position;
@@ -13,7 +14,7 @@ struct PointLight {
         : position(pos), color(col) {}
 };
 
-class Scene {
+class Scene  {
     public:
         Camera& camera;
         PointLight light;
@@ -40,15 +41,27 @@ class Scene {
             }
 
             if (hitAnything) {
-                // Fill shading info directly into HitRecord
-                rec.viewDir    = unit_vector(camera.getPos() - rec.point);
-                rec.lightPos   = light.position;
-                rec.lightColor = light.color;
+                // Direction from hit point back toward the ray origin
+                rec.viewDir  = unit_vector(-r.direction());
             }
             return hitAnything;
-    }
+        }
 
-    bool isInShadow(const vec3& point, const std::shared_ptr<Shape>& ignore) const {
+        vec3 computeRayColor(const Ray& r, int depth) const {
+            if(depth <= 0) {
+                return vec3(0, 0, 0); // No more light is gathered
+            }
+            HitRecord rec;
+            
+            if (hit(r, 1.0f, FLT_MAX, rec)) {
+                rec.inShadow = isInShadow(rec.point);
+                return rec.shader->rayColor(rec, *this, depth - 1);
+            }
+            // Background color
+            return vec3(0.529f, 0.808f, 0.922f); // Light blue
+        }
+
+        bool isInShadow(const vec3& point) const {
             vec3 lightDir = unit_vector(light.position - point);
             Ray shadowRay(point + 0.001f * lightDir, lightDir); 
             float maxDist = (light.position - point).length();
@@ -56,7 +69,6 @@ class Scene {
             HitRecord tempRec;
 
             for (const auto& obj : objects) {
-                if (obj == ignore) continue;
                 if (obj->intersect(shadowRay, 0.001f, maxDist, tempRec)) {
                     return true; 
                 }

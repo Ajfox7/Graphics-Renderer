@@ -12,18 +12,19 @@ class BlinnPhong : public Shader {
           specularColor(specular),
           shininess(shininess) {}
 
-        vec3 rayColor(const HitRecord& h) override {
-            vec3 L = unit_vector(h.lightPos - h.point);
+        vec3 rayColor(const HitRecord& h, const Scene& scene, int depth) override {
+            
+            vec3 L = unit_vector(scene.light.position - h.point);
             vec3 H = unit_vector(L + h.viewDir);
 
             float NdotL = std::max(dot(h.normal, L), 0.0f);
             float NdotH = std::max(dot(h.normal, H), 0.0f);
 
-            vec3 diffuse  = diffuseColor  * h.lightColor * NdotL;
-            vec3 specular = specularColor * h.lightColor * std::pow(NdotH, shininess);
+            vec3 diffuse  = diffuseColor  * scene.light.color * NdotL;
+            vec3 specular = specularColor * scene.light.color * std::pow(NdotH, shininess);
 
             if(h.inShadow) {
-                return vec3(0, 0, 0) + diffuse * 0.5f; // simple shadow attenuation (reduce diffuse, remove specular)
+                return vec3(0, 0, 0) + diffuse * 0.5f; 
             }
 
             return diffuse + specular;

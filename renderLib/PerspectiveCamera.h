@@ -6,7 +6,7 @@ class PerspectiveCamera : public Camera {
         PerspectiveCamera()
             : Camera() {}
 
-        PerspectiveCamera( int pixel_nx, int pixel_ny )
+        PerspectiveCamera(  int pixel_nx, int pixel_ny )
             : Camera( pixel_nx, pixel_ny ) {}
 
         PerspectiveCamera( vec3 origin, vec3 viewDir, vec3 upDir,
@@ -16,7 +16,7 @@ class PerspectiveCamera : public Camera {
         {
             position = origin;
             vec3 up = unit_vector(upDir);
-            W = -unit_vector(viewDir);
+            W = unit_vector(-viewDir);
             U = unit_vector(cross(up, W));
             V = cross( W, U );
 
@@ -26,8 +26,11 @@ class PerspectiveCamera : public Camera {
         }
 
         Ray generateRay( float i, float j ) override {
-            float u = ( (i + 0.5f) / nx - 0.5f ) * imageplaneWidth;
-            float v = ( (j + 0.5f) / ny - 0.5f ) * imageplaneHeight;
+            // `i` and `j` are continuous sample positions in pixel coordinates
+            // (e.g. i = pixel_x + subpixel_offset). Map them to the image
+            // plane by dividing by the resolution (nx, ny).
+            float u = ( (i) / nx - 0.5f ) * imageplaneWidth;
+            float v = ( (j) / ny - 0.5f ) * imageplaneHeight;
 
             return Ray(position, -W*focalLength + U*u + V*v);
         }

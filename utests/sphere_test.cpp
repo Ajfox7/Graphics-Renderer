@@ -3,7 +3,7 @@
 #include "Sphere.h"
 #include "Ray.h"
 #include "vec3.h"
-#include "hit_record.h"
+#include "HitRecord.h"
 
 TEST_CASE( "Sphere Intersection Test - Hit" )
 {

@@ -1,7 +1,6 @@
 #include "Framebuffer.h"
 #include "png++/png.hpp"
 #include <algorithm>
-#include "PerspectiveCamera.h"
 
 Framebuffer::Framebuffer(int width, int height) {
     this->width = width;

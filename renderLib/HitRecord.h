@@ -1,7 +1,5 @@
 #pragma once
 
-#include "vec3.h"
-#include "Ray.h"
 #include <memory>
 
 class Shape;
@@ -15,8 +13,6 @@ struct HitRecord {
     std::shared_ptr<Shape> shape;
     std::shared_ptr<Shader> shader;
     vec3 viewDir;
-    vec3 lightPos;
-    vec3 lightColor;
     bool inShadow = false;
 
     void setFaceNormal(const Ray& r, const vec3& outwardNormal) {

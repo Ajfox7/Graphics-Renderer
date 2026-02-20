@@ -1,5 +1,7 @@
 #pragma once
+
 #include "Camera.h"
+#include "vec3.h"
 
 class PerspectiveCamera : public Camera {
     public:

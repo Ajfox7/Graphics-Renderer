@@ -1,12 +1,12 @@
 #pragma once
+
 #include "Shader.h"
-#include "Scene.h"
 
 class Mirror : public Shader {
     public:
         Mirror() {}
 
-        vec3 rayColor (const HitRecord& h, const Scene& scene, int depth) override {
+        vec3 rayColor (const HitRecord& h, const Scene& scene, int depth) const override {
             vec3 incoming = -h.viewDir;
             vec3 normal = h.normal;
 

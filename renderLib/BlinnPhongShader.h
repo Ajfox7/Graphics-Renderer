@@ -12,7 +12,7 @@ class BlinnPhong : public Shader {
           specularColor(specular),
           shininess(shininess) {}
 
-        vec3 rayColor(const HitRecord& h, const Scene& scene, int depth) override {
+        vec3 rayColor(const HitRecord& h, const Scene& scene, int depth) const override {
             
             vec3 L = unit_vector(scene.light.position - h.point);
             vec3 H = unit_vector(L + h.viewDir);

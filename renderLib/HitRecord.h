@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vec3.h"
+#include "Ray.h"
 #include <memory>
 
 class Shape;

@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <random>
 
 class vec3 {
     public:
@@ -86,6 +87,17 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 
 inline vec3 unit_vector(const vec3& v) {
     return v/ v.length();
+}
+
+inline vec3 random_in_unit_sphere() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    while (true) {
+        vec3 p = vec3(dis(gen), dis(gen), dis(gen)) * 2.0f - vec3(1, 1, 1);
+        if (p.length_squared() >= 1) continue;
+        return p;
+    }
 }
 
 #endif

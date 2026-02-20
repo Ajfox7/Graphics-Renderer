@@ -5,6 +5,7 @@
 #include "LambertianShader.h"
 #include "BlinnPhongShader.h"
 #include "MirrorShader.h"
+#include "DiffuseShader.h"
 #include "Framebuffer.h"
 #include <random>
 
@@ -15,14 +16,14 @@ int main() {
         vec3(0, 1, 0),          // up
         0.75f,                   // focal length
         2.0f,                   // image plane width
-        1.5f,                   // image plane height
-        800, 600                // nx, ny
+        2.0f,                   // image plane height
+        600, 600                // nx, ny
     );
 
     Scene scene(camera, PointLight(vec3(0, 10, 5), vec3(0.8, 0.8, 1)));
 
     //Create shaders
-    auto redLambert = std::make_shared<Lambertian>(vec3(1, 0, 0));
+    auto redLambert = std::make_shared<Diffuse>(vec3(1, 0, 0));
     auto shinyBlue  = std::make_shared<BlinnPhong>(vec3(0, 0, 1), vec3(1, 1, 1), 32.0f);
     auto shinyGreen = std::make_shared<BlinnPhong>(vec3(0, 1, 0),vec3(1,1,1), 50.0f);
     auto bgLambert = std::make_shared<Lambertian>(vec3(0.45f, 0.45f, 0.45f));
@@ -35,16 +36,16 @@ int main() {
     scene.addObject(std::make_shared<Triangle>(vec3(-4, 0, -3),  vec3( 4, 0, -3), vec3( 0,  6, -3), shinyGreen));
     scene.addObject(std::make_shared<Sphere>(1.0f, vec3(0, 2, -1), mirrorShader));
 
-    Framebuffer fb(800, 600);
+    Framebuffer fb(600, 600);
 
     // Stratified sampling parameters: `strata` per-dimension (strata*strata samples/pixel)
-    const int strata = 3; // change to 1 for no AA, 2 => 4 samples/pixel, 3 => 9, etc.
+    const int strata = 4;// change to 1 for no AA, 2 => 4 samples/pixel, 3 => 9, etc.
     const int samplesPerPixel = strata * strata;
 
     std::mt19937 rng(static_cast<unsigned int>(std::random_device{}()));
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
-    const int maxDepth = 5; // Max recursion depth for ray tracing
+    const int maxDepth = 3; // Max recursion depth for ray tracing
 
     for (int j = 0; j < fb.getHeight(); ++j) {
         for (int i = 0; i < fb.getWidth(); ++i) {

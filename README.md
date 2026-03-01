@@ -18,4 +18,4 @@ This project uses CMake Presets
 - cmake --build . (in build folder to build the project)
 
 ## Run the Project
-- navigate to build floder (e.g. buildVCPkg/src) to run main.exe
+- navigate to build folder (e.g. buildVCPkg/src) to run main.exe

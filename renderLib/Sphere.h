@@ -38,7 +38,6 @@ class Sphere: public Shape {
             vec3 outwardNormal = (rec.point - center) / radius;
             rec.setFaceNormal(r, outwardNormal);
 
-            rec.shape = std::const_pointer_cast<Shape>(shared_from_this());
             rec.shader = shader;
 
             return true;

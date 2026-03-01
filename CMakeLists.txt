@@ -81,6 +81,9 @@ find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
+#OpenMP
+find_package(OpenMP REQUIRED)
+
 # Renderer library
 add_subdirectory(renderLib)
 

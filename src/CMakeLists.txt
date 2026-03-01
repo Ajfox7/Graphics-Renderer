@@ -14,6 +14,7 @@ add_executable(Main
 target_link_libraries(Main
     PRIVATE
         renderLib
+        OpenMP::OpenMP_CXX
         cs4212-util
         PNG::PNG
         ZLIB::ZLIB

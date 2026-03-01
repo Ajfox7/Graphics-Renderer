@@ -3,7 +3,7 @@
 #include "Ray.h"
 #include "HitRecord.h"
 
-class Shape: public std::enable_shared_from_this<Shape> {
+class Shape {
     public:
         virtual ~Shape() = default;
 

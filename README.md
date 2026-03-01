@@ -2,6 +2,9 @@
 
 C++ graphics renderer with ray tracing, shading, and multiple objects. This project uses Catch2 unit testing.
 
+- Shapes: Spheres, Triangles
+- Shaders: Lambertian, Blinn-Phong, Mirror, Diffuse, Emitter
+
 ## Requirements
 
 - CMake 3.22+
@@ -13,4 +16,6 @@ C++ graphics renderer with ray tracing, shading, and multiple objects. This proj
 This project uses CMake Presets
 - cmake --preset=default (default configuration)
 - cmake --build . (in build folder to build the project)
-- navigate to executables in build floder (e.g. buildVCPkg) to run
+
+## Run the Project
+- navigate to build floder (e.g. buildVCPkg/src) to run main.exe

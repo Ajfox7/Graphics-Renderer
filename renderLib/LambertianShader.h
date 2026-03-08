@@ -10,13 +10,20 @@ class Lambertian : public Shader {
 
         vec3 rayColor(const HitRecord& h, const Scene& scene, int depth) const override {
             
-            vec3 L = unit_vector(scene.light.position - h.point);
-            float NdotL = std::max(dot(h.normal, L), 0.0f);
+            vec3 totalColor(0, 0, 0);
+            
+            for(const auto& light : scene.lights) {
 
-            if(h.inShadow) {
-                return vec3(0, 0, 0) + albedo * scene.light.color * NdotL * 0.5f; 
+                if(scene.isInShadow(h.point, light)) {
+                    continue;
+                }
+            
+                vec3 L = unit_vector(light->position - h.point);
+
+                float NdotL = std::max(dot(h.normal, L), 0.0f);
+
+                totalColor = totalColor + albedo * light->color * NdotL;
             }
-
-            return albedo * scene.light.color * NdotL;
+            return totalColor;
         }
 };

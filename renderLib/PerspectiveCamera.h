@@ -11,6 +11,22 @@ class PerspectiveCamera : public Camera {
         PerspectiveCamera(  int pixel_nx, int pixel_ny )
             : Camera( pixel_nx, pixel_ny ) {}
 
+        PerspectiveCamera( vec3 origin, vec3 viewDir, float fLength, float imgPlaneWidth )
+        {
+            position = origin;
+            W = unit_vector(-viewDir);
+            if(std::abs(W.y()) > 0.999f) {
+                // If the view direction is nearly parallel to the world up vector, use a different up vector to avoid numerical instability
+                U = unit_vector(cross(vec3(0, 0, 1), W));
+            } else {
+                U = unit_vector(cross(vec3(0, 1, 0), W));
+            }
+            V = cross( W, U );
+
+            focalLength = fLength;
+            imageplaneWidth = imgPlaneWidth;
+        }
+
         PerspectiveCamera( vec3 origin, vec3 viewDir, vec3 upDir,
                            float fLength, float imgPlaneWidth, float imgPlaneHeight,
                            int pixel_nx, int pixel_ny )

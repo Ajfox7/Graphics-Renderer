@@ -11,19 +11,28 @@ class Camera {
 
         Camera(int pixel_nx, int pixel_ny )
             : position(0, 0, 0), U(1, 0, 0), V(0, 1, 0), W(0, 0, 1),
-            focalLength(1.0f),
+            focalLength(1.0f), 
             nx(pixel_nx), ny(pixel_ny)
          {
             imageplaneWidth= 0.25f;
             float aspectRatio = static_cast<float>(nx) / static_cast<float>(ny);
             imageplaneHeight = imageplaneWidth / aspectRatio;
+            
          }
 
         virtual ~Camera() {}
 
         virtual Ray generateRay( float i, float j) = 0;
 
-        vec3 getPos() const { return position; }
+        vec3 getPos(){return this->position;}
+
+        void setResolution(int pixel_nx, int pixel_ny) {
+            nx = pixel_nx;
+            ny = pixel_ny;
+
+            float aspectRatio = static_cast<float>(nx) / static_cast<float>(ny);
+            imageplaneHeight = imageplaneWidth / aspectRatio;
+        }
 
     protected:
         vec3 position;

@@ -3,11 +3,18 @@ add_library(renderLib
     Camera.h
     Framebuffer.cpp
     Framebuffer.h
-    hit_record.h
+    HitRecord.h
+    ISceneLoader.h
     LambertianShader.h
     PerspectiveCamera.h
+    DiffuseShader.h
+    EmitterShader.h
+    MirrorShader.h
     Ray.h
     Scene.h
+    SceneLoader.h
+    SceneParser_JSON.cpp
+    SceneParser_JSON.h
     Shader.h
     Shape.h
     Sphere.h

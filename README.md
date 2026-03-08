@@ -4,6 +4,7 @@ C++ graphics renderer with ray tracing, shading, and multiple objects. This proj
 
 - Shapes: Spheres, Triangles
 - Shaders: Lambertian, Blinn-Phong, Mirror, Diffuse, Emitter
+- Additional Features: OpenMP Multithreading, JSON Scene Parsing
 
 ## Requirements
 

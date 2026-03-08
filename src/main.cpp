@@ -9,9 +9,12 @@
 #include "Framebuffer.h"
 #include "handleGraphicsArgs.h"
 #include "EmitterShader.h"
+#include "SceneLoader.h"
+#include "SceneParser_JSON.h"
 #include <random>
 #include <omp.h>
 #include <chrono>
+#include <iostream>
 
 int main(int argc, char* argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -20,39 +23,14 @@ int main(int argc, char* argv[]) {
     sivelab::GraphicsArgs args;
     args.process(argc, argv);
 
-    float imagePlaneWidth = 2.0f;
-    float imagePlaneHeight = imagePlaneWidth / args.aspectRatio;
-    PerspectiveCamera camera(
-        vec3(0, -2, 5),          // origin
-        vec3(0, 0, -1),         // view direction
-        vec3(0, 1, 0),          // up
-        1.5f,                   // focal length
-        imagePlaneWidth,                   // image plane width
-        imagePlaneHeight,                   // image plane height
-        args.width, args.height                // nx, ny
-    );
+    Scene scene;
 
-    Scene scene(camera, PointLight(vec3(0, 10, 5), vec3(0.8, 0.8, 1)));
-
-    //Create shaders
-    auto redLambert = std::make_shared<Diffuse>(vec3(1, 0, 0));
-    auto greenLambert = std::make_shared<Diffuse>(vec3(0, 1, 0));
-    auto blueLambert = std::make_shared<Diffuse>(vec3(0, 0, 1)); 
-    auto shinyBlue  = std::make_shared<BlinnPhong>(vec3(0, 0, 1), vec3(1, 1, 1), 32.0f);
-    auto shinyGreen = std::make_shared<BlinnPhong>(vec3(0, 1, 0),vec3(1,1,1), 50.0f);
-    auto bgLambert = std::make_shared<Lambertian>(vec3(0.2f, 0.2f, 0.2f));
-    auto mirrorShader = std::make_shared<Mirror>();
-    auto emitterShader = std::make_shared<Emitter>(vec3(100, 10, 100)); // Bright light source
-
-    // Add objects to the scene
-    scene.addObject(std::make_shared<Sphere>(1000.0f, vec3(0.0f, -1000.0f, -100.0f), bgLambert));
-    scene.addObject(std::make_shared<Sphere>(1.0f, vec3(-1.5, -1.5, -1), redLambert));
-    scene.addObject(std::make_shared<Sphere>( 1.0f, vec3( 1.5, -1.5, -1), shinyBlue));
-    scene.addObject(std::make_shared<Triangle>(vec3(-4, 2, -3),  vec3( 4, 2, -3), vec3( 0,  -4, -3), greenLambert));
-    scene.addObject(std::make_shared<Sphere>(1.0f, vec3(0, 0, -1), emitterShader));
-    scene.addObject(std::make_shared<Sphere>(1.0f, vec3(0, -3, -1), mirrorShader));
+    std::shared_ptr<ISceneLoader> loader = std::make_shared<SceneLoader>(scene);
+    SceneParser_JSON parser(loader);
+    parser.parseFileData(args.inputFileName);
 
     Framebuffer fb(args.width, args.height);
+    scene.cameras[0]->setResolution(args.width, args.height);
 
     // Stratified sampling parameters: `strata` per-dimension (strata*strata samples/pixel)
     const int strata = args.rpp;// change to 1 for no AA, 2 => 4 samples/pixel, 3 => 9, etc.
@@ -82,7 +60,7 @@ int main(int argc, char* argv[]) {
                         float sampleX = i + (sx + rx) / static_cast<float>(strata);
                         float sampleY = j + (sy + ry) / static_cast<float>(strata);
 
-                        Ray r = camera.generateRay(sampleX, sampleY);
+                        Ray r = scene.cameras[0]->generateRay(sampleX, sampleY);
                         vec3 sampleColor = scene.computeRayColor(r, maxDepth);
 
                         accumColor = accumColor + sampleColor;

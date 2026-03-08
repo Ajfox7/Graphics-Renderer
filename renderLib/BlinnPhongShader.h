@@ -13,20 +13,25 @@ class BlinnPhong : public Shader {
           shininess(shininess) {}
 
         vec3 rayColor(const HitRecord& h, const Scene& scene, int depth) const override {
+
+            vec3 totalDiffuse(0, 0, 0);
+            vec3 totalSpecular(0, 0, 0);
             
-            vec3 L = unit_vector(scene.light.position - h.point);
-            vec3 H = unit_vector(L + h.viewDir);
+            for(const auto& light : scene.lights) {
 
-            float NdotL = std::max(dot(h.normal, L), 0.0f);
-            float NdotH = std::max(dot(h.normal, H), 0.0f);
+                if(scene.isInShadow(h.point, light)) {
+                    continue; 
+                }
 
-            vec3 diffuse  = diffuseColor  * scene.light.color * NdotL;
-            vec3 specular = specularColor * scene.light.color * std::pow(NdotH, shininess);
+                vec3 L = unit_vector(light->position - h.point);
+                vec3 H = unit_vector(L + h.viewDir);
 
-            if(h.inShadow) {
-                return vec3(0, 0, 0) + diffuse * 0.5f; 
+                float NdotL = std::max(dot(h.normal, L), 0.0f);
+                float NdotH = std::max(dot(h.normal, H), 0.0f);
+
+                totalDiffuse  = totalDiffuse + (diffuseColor  * light->color * NdotL);
+                totalSpecular = totalSpecular + (specularColor * light->color * std::pow(NdotH, shininess));
             }
-
-            return diffuse + specular;
+            return totalDiffuse + totalSpecular;
         }
 };

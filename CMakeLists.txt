@@ -90,6 +90,9 @@ add_subdirectory(renderLib)
 # Add the src directory to build the library.
 add_subdirectory(src)
 
+# OpenGL 
+add_subdirectory(OpenGL)
+
 #
 # Unit Tests - by enabling testing with cmake, we can create a target that lets unit tests be run. After re-building
 # yourproject with ENABLE_TESTING called, a make target, called test will be enabled. You can then type

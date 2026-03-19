@@ -7,6 +7,7 @@
 #include "HitRecord.h"
 #include "Camera.h"
 #include "Shader.h"
+#include "BVHNode.h"
 
 struct PointLight {
     vec3 position;
@@ -22,6 +23,7 @@ class Scene  {
         std::vector<std::shared_ptr<PointLight>> lights;
         std::vector<std::shared_ptr<Shape>> objects;
         std::unordered_map<std::string, std::shared_ptr<Shader>> shaderRegistry;
+        std::shared_ptr<Shape> bvhRoot = nullptr; 
 
         Scene() = default;
 
@@ -42,18 +44,16 @@ class Scene  {
             cameras.push_back(cam);
         }
 
-        bool hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const {
-            HitRecord tempRec;
-            bool hitAnything = false;
-            float closestSoFar = tMax;
-
-            for (const auto& obj : objects) {
-                if (obj->intersect(r, tMin, closestSoFar, tempRec)) {
-                    hitAnything = true;
-                    closestSoFar = tempRec.t;
-                    rec = tempRec;
-                }
+        void buildBVH() {
+            if (!objects.empty()) {
+                bvhRoot = std::make_shared<BVHNode>(objects, 0, objects.size());
             }
+        }
+
+        bool hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const {
+            if (!bvhRoot) return false;
+
+            bool hitAnything = bvhRoot->intersect(r, tMin, tMax, rec);
 
             if (hitAnything) {
                 // Direction from hit point back toward the ray origin
@@ -88,11 +88,8 @@ class Scene  {
             Ray shadowRay(point + 0.001f * lightDir, lightDir);
             HitRecord tempRec;
 
-            for (const auto& obj : objects) {
-                if (obj->intersect(shadowRay, 0.001f, maxDist, tempRec)) {
-                    return true; // blocked for this light
-                }
-            }
-            return false; // no light was blocked
+            if (!bvhRoot) return false;
+
+            return bvhRoot->intersect(shadowRay, 0.001f, maxDist, tempRec);
         }
 };

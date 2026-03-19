@@ -7,7 +7,13 @@ class Triangle: public Shape {
     public:
         Triangle(const point3& v0, const point3& v1, const point3& v2): v0(v0), v1(v1), v2(v2), shader(nullptr) {}
         Triangle(const point3& v0, const point3& v1, const point3& v2, std::shared_ptr<Shader> s)
-            : v0(v0), v1(v1), v2(v2), shader(s) {}
+            : v0(v0), v1(v1), v2(v2), shader(s) {
+                // Set the bounding box for the triangle
+                vec3 minPoint(std::min({v0.x(), v1.x(), v2.x()}), std::min({v0.y(), v1.y(), v2.y()}), std::min({v0.z(), v1.z(), v2.z()}));
+                vec3 maxPoint(std::max({v0.x(), v1.x(), v2.x()}), std::max({v0.y(), v1.y(), v2.y()}), std::max({v0.z(), v1.z(), v2.z()}));
+                BoundingBox box(minPoint, maxPoint);
+                setBoundingBox(box);
+            }
 
         bool intersect(const Ray& r,const float tmin, float& tmax, HitRecord& rec) const override {
             vec3 edge1 = v1 - v0;
@@ -40,6 +46,7 @@ class Triangle: public Shape {
 
             return true;
         }
+
     private:
         point3 v0;
         point3 v1;

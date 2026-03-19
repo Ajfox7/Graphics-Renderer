@@ -29,6 +29,8 @@ int main(int argc, char* argv[]) {
     SceneParser_JSON parser(loader);
     parser.parseFileData(args.inputFileName);
 
+    scene.buildBVH();
+
     Framebuffer fb(args.width, args.height);
     scene.cameras[0]->setResolution(args.width, args.height);
 

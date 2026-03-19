@@ -10,7 +10,12 @@ class Sphere: public Shape {
         Sphere(float r, const vec3& c)
         : center(c), radius(r), shader(nullptr) {}
 
-        Sphere(float radius, point3 center, std::shared_ptr<Shader> s) : radius(radius), center(center), shader(s){}
+        Sphere(float radius, point3 center, std::shared_ptr<Shader> s) : radius(radius), center(center), shader(s){
+            // Set the bounding box for the sphere
+            vec3 radiusVec(radius, radius, radius);
+            BoundingBox box(center - radiusVec, center + radiusVec);
+            setBoundingBox(box);
+        }
 
         bool intersect(const Ray& r,const float tmin, float& tmax, HitRecord& rec) const override {
             vec3 oc = r.origin() - center;
@@ -45,6 +50,7 @@ class Sphere: public Shape {
 
         //getters
         float getRadius() const { return radius; }
+
         point3 getCenter() const { return center; }
 
     private:

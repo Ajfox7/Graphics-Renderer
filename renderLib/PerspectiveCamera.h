@@ -2,6 +2,8 @@
 
 #include "Camera.h"
 #include "vec3.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class PerspectiveCamera : public Camera {
     public:
@@ -51,5 +53,49 @@ class PerspectiveCamera : public Camera {
             float v = ( (j) / ny - 0.5f ) * imageplaneHeight;
 
             return Ray(position, -W*focalLength + U*u + V*v);
+        }
+
+        glm::mat4 getViewMatrix() const {
+            glm::mat4 M(1.0f);
+
+            M[0][0] = U.x();  M[1][0] = U.y();  M[2][0] = U.z();
+            M[0][1] = V.x();  M[1][1] = V.y();  M[2][1] = V.z();
+            M[0][2] = W.x();  M[1][2] = W.y();  M[2][2] = W.z();
+
+            M[3][0] = -dot(U, position);
+            M[3][1] = -dot(V, position);
+            M[3][2] = -dot(W, position);
+
+            return M;
+        }
+
+        glm::mat4 getProjectionMatrix(float nearPlane, float farPlane) const {
+            float aspect = imageplaneWidth / imageplaneHeight;
+            float fovY = 2.0f * std::atan(imageplaneHeight / (2.0f * focalLength));
+            return glm::perspective(fovY, aspect, nearPlane, farPlane);
+        }
+
+        void moveForward(float amount) {
+            position = position + -W * amount;
+        }
+
+        void moveBackward(float amount) {
+            position = position + W * amount;
+        }
+
+        void moveRight(float amount) {
+            position = position + U * amount;
+        }
+
+        void moveLeft(float amount) {
+            position = position - U * amount;
+        }
+
+        void moveUp(float amount) {
+            position = position + V * amount;
+        }
+
+        void moveDown(float amount) {
+            position = position - V * amount;
         }
 };

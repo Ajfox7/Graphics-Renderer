@@ -11,6 +11,7 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "GLSL.h"
+#include "PerspectiveCamera.h"
 
 int CheckGLErrors(const char *s)
 {
@@ -33,8 +34,10 @@ int main(void)
 
     /* Create a windowed mode window and its OpenGL context */
     int winWidth = 1000;
-    float aspectRatio = 1.0; // 16.0 / 9.0; // winWidth / (float)winHeight;
-    int winHeight = winWidth / aspectRatio;
+    int winHeight = 800;
+
+    float aspectRatio = float(winWidth) / float(winHeight);
+
     
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "GLFW Example", NULL, NULL);
     if (!window) {
@@ -73,7 +76,10 @@ int main(void)
     // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
     float halfWidth = 15.0 / 2.0;
     float halfHeight = halfWidth / aspectRatio;
-    glm::mat4 projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -10.0f, 10.0f);
+    glm::mat4 M_ortho = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, 5.0f, -5.0f);
+
+    // perspective matrix
+    glm::mat4 M_perspective = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
 
     GLint major_version;
     glGetIntegerv(GL_MAJOR_VERSION, &major_version);
@@ -92,9 +98,9 @@ int main(void)
     // the GPU memory                                                                                       
     std::vector< float > host_VertexBuffer{ 
         //position          //color
-        -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,                                     
-        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,                                      
-        0.0f, 0.5f, 0.0f,   0.0f, 0.0f, 0.0f
+        -3.0f, -3.0f, 0.0f, 1.0f, 1.0f, 1.0f,                                     
+        3.0f, -3.0f, 0.0f,  1.0f, 0.0f, 0.0f,                                      
+        0.0f, 3.0f, 0.0f,   0.0f, 0.0f, 0.0f
     };                                     
 
     int numBytes = host_VertexBuffer.size() * sizeof(float);
@@ -130,6 +136,19 @@ int main(void)
     shader.addShader( "OpenGL/Debug/fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
+    GLuint projMatrixID, viewMatrixID, modelMatrixID;
+    projMatrixID = shader.createUniform( "projMatrix" );
+    viewMatrixID = shader.createUniform( "viewMatrix" );
+    modelMatrixID = shader.createUniform( "modelMatrix" );
+
+    glm::mat4 M_model = glm::mat4(1.0f);
+    float rot = 0.0f;
+    M_model = glm::rotate(M_model, rot, glm::vec3(0, 1, 0));
+
+    PerspectiveCamera camera( vec3(0,0,10), vec3(0,0,-1), vec3(0,1,0), aspectRatio, 10.0f, 10.0f, winWidth, winHeight );
+
+    glm::mat4 M_proj = camera.getProjectionMatrix(0.1f, 100.0f);
+
     double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
     
     /* Loop until the user closes the window */
@@ -143,11 +162,26 @@ int main(void)
         // background color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // create the view matrix from our camera data                                                                                                   
+        glm::mat4 M_view = camera.getViewMatrix();
+
         /* Render your objects here */
         shader.activate();
+
+        M_model = glm::mat4(1.0f);
+        M_model = glm::rotate(M_model, rot, glm::vec3(0, 1, 0));
+        rot += 0.004f;
+        if(rot > 360) rot = 0.0f;
+
+        // copy from the host to the device the view matrix and the projection matrix                                                                                       
+        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr( M_proj ));
+        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
+        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr( M_model ));
+
         glBindVertexArray(m_VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
+
         shader.deactivate();
 
         // Swap the front and back buffers
@@ -155,6 +189,31 @@ int main(void)
 
         /* Poll for and process events */
         glfwPollEvents();
+
+        float moveRatePerFrame = 0.05;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            camera.moveForward(moveRatePerFrame);
+        }
+        else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            camera.moveLeft(moveRatePerFrame);
+        }
+        else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            camera.moveBackward(moveRatePerFrame);
+        }
+        else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            camera.moveRight(moveRatePerFrame);
+        }
+        else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            camera.moveUp(moveRatePerFrame);
+        }
+        else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+            camera.moveDown(moveRatePerFrame);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+        std::cout << "fps: " << 1.0 / timeDiff << std::endl;
+        }
 
         if (glfwGetKey( window, GLFW_KEY_T ) == GLFW_PRESS) {
             std::cout << "fps: " << 1.0/timeDiff << std::endl;

@@ -97,10 +97,10 @@ int main(void)
     // this is the actual triangle data that will be copied to                                              
     // the GPU memory                                                                                       
     std::vector< float > host_VertexBuffer{ 
-        //position          //color
-        -3.0f, -3.0f, 0.0f, 1.0f, 1.0f, 1.0f,                                     
-        3.0f, -3.0f, 0.0f,  1.0f, 0.0f, 0.0f,                                      
-        0.0f, 3.0f, 0.0f,   0.0f, 0.0f, 0.0f
+        //position          //Normal
+        -3.0f, -3.0f, 0.0f, 0.0f, 0.0f, 1.0f,                                     
+        3.0f, -3.0f, 0.0f,  0.0f, 0.0f, 1.0f,                                      
+        0.0f, 3.0f, 0.0f,   0.0f, 0.0f, 1.0f
     };                                     
 
     int numBytes = host_VertexBuffer.size() * sizeof(float);
@@ -125,25 +125,35 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 
-    // Attribute 1: color
+    // Attribute 1: normal
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
     glBindVertexArray(0);
 
-    // Create a shader using my GLSLObject class                                                            
-    shader.addShader( "OpenGL/Debug/vertexShader_passthrough.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "OpenGL/Debug/fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    // Create a shader using my GLSLObject class - adjust path as needed.  The shader code is in the same directory as this file.                                                           
+    shader.addShader( "../OpenGL/vertexShader_perFrag.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "../OpenGL/fragmentShader_perFrag.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
-    GLuint projMatrixID, viewMatrixID, modelMatrixID;
-    projMatrixID = shader.createUniform( "projMatrix" );
-    viewMatrixID = shader.createUniform( "viewMatrix" );
-    modelMatrixID = shader.createUniform( "modelMatrix" );
+    // get the uniform variable locations for the projection matrix, view matrix, and model matrix in our shader code
+    GLuint projMatrixID = shader.createUniform( "projMatrix" );
+    GLuint viewMatrixID = shader.createUniform( "viewMatrix" );
+    GLuint modelMatrixID = shader.createUniform( "modelMatrix" );
+    GLuint normalMatrixID = shader.createUniform( "normalMatrix" );
+    GLuint lightPosID = shader.createUniform( "light.position" );
+    GLuint lightIntID = shader.createUniform( "light.intensity" );
+    GLuint Ia_ID = shader.createUniform("Ia");
+    GLuint ka_ID = shader.createUniform("ka");
+    GLuint kd_ID = shader.createUniform("kd");
+    GLuint ks_ID = shader.createUniform("ks");
+    GLuint phongExpID = shader.createUniform("phongExp");
 
     glm::mat4 M_model = glm::mat4(1.0f);
     float rot = 0.0f;
     M_model = glm::rotate(M_model, rot, glm::vec3(0, 1, 0));
+
+    glm::mat4 M_normal = glm::transpose(glm::inverse(M_model));
 
     PerspectiveCamera camera( vec3(0,0,10), vec3(0,0,-1), vec3(0,1,0), aspectRatio, 10.0f, 10.0f, winWidth, winHeight );
 
@@ -162,21 +172,33 @@ int main(void)
         // background color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // create the view matrix from our camera data                                                                                                   
-        glm::mat4 M_view = camera.getViewMatrix();
-
         /* Render your objects here */
         shader.activate();
 
+        // 1. Pass the Light Data
+        glUniform3f(lightPosID, 0.0f, 0.0f, 10.0f);    // light.position
+        glUniform3f(lightIntID, 1.0f, 1.0f, 1.0f);    // light.intensity (White light)
+
+        // 2. Pass the Material Properties
+        glUniform3f(Ia_ID, 0.2f, 0.2f, 0.2f);         // Ambient intensity
+        glUniform3f(ka_ID, 1.0f, 1.0f, 1.0f);         // Ambient reflection
+        glUniform3f(kd_ID, 0.5f, 1.0f, 1.0f);         // Diffuse reflection
+        glUniform3f(ks_ID, 1.0f, 1.0f, 1.0f);         // Specular reflection (White)
+        glUniform1f(phongExpID, 32.0f);    // Shininess
+
         M_model = glm::mat4(1.0f);
         M_model = glm::rotate(M_model, rot, glm::vec3(0, 1, 0));
-        rot += 0.004f;
+        rot += 0.002f;
         if(rot > 360) rot = 0.0f;
 
+        glm::mat4 M_view = camera.getViewMatrix();
+        glm::mat4 MV = M_view * M_model;
+        glm::mat4 M_normal = glm::transpose(glm::inverse(MV));
         // copy from the host to the device the view matrix and the projection matrix                                                                                       
         glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr( M_proj ));
         glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
         glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr( M_model ));
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr( M_normal ));
 
         glBindVertexArray(m_VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);

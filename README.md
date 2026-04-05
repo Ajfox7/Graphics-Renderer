@@ -6,6 +6,15 @@ C++ graphics renderer with ray tracing, shading, and multiple objects. This proj
 - Shaders: Lambertian, Blinn-Phong, Mirror, Diffuse, Emitter
 - Additional Features: OpenMP Multithreading, JSON Scene Parsing, Bounding Volume       Hierarchy data structure, OpenGL implementation
 
+## OpenGL Camera Controls
+
+- W: forward
+- A: left
+- S: backward
+- D: right
+- Q: up
+- Z: down
+
 ## Requirements
 
 - CMake 3.22+

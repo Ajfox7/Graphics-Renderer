@@ -1,12 +1,20 @@
 # Graphics Renderer
 
-C++ graphics renderer with ray tracing, shading, and multiple objects. This project uses Catch2 unit testing.
+C++ graphics renderer with ray tracing and rastrizing engines. This project uses Catch2 unit testing.
 
 - Shapes: Spheres, Triangles
-- Shaders: Lambertian, Blinn-Phong, Mirror, Diffuse, Emitter
+- Shaders: Lambertian, Blinn-Phong
+- Ray Tracer Exclusive Shaders: Mirror, Diffuse, Emitter
 - Additional Features: OpenMP Multithreading, JSON Scene Parsing, Bounding Volume       Hierarchy data structure, OpenGL implementation
 
-## OpenGL Camera Controls
+## Rasterizer Features
+
+- Shader that supports lambertian and Blinn-Phong shading (ks = (0,0,0) for lambertian)
+- OpenGL context window of scene
+- Camera movement
+- No shadows
+
+## OpenGL Rasterizer Camera Controls
 
 - W: forward
 - A: left
@@ -28,4 +36,7 @@ This project uses CMake Presets
 - cmake --build . (in build folder to build the project)
 
 ## Run the Project
+
 - navigate to build folder (e.g. buildVCPkg/src) to run main.exe
+- main.exe - ray tracer
+- glfwExample.exe - rasterizer

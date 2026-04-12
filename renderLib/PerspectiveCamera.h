@@ -58,13 +58,29 @@ class PerspectiveCamera : public Camera {
         glm::mat4 getViewMatrix() const {
             glm::mat4 M(1.0f);
 
-            M[0][0] = U.x();  M[1][0] = U.y();  M[2][0] = U.z();
-            M[0][1] = V.x();  M[1][1] = V.y();  M[2][1] = V.z();
-            M[0][2] = W.x();  M[1][2] = W.y();  M[2][2] = W.z();
+            // Column 0
+            M[0][0] = U.x();
+            M[0][1] = V.x();
+            M[0][2] = W.x();
+            M[0][3] = 0.0f;
 
+            // Column 1
+            M[1][0] = U.y();
+            M[1][1] = V.y();
+            M[1][2] = W.y();
+            M[1][3] = 0.0f;
+
+            // Column 2
+            M[2][0] = U.z();
+            M[2][1] = V.z();
+            M[2][2] = W.z();
+            M[2][3] = 0.0f;
+
+            // Column 3 (Translation)
             M[3][0] = -dot(U, position);
             M[3][1] = -dot(V, position);
             M[3][2] = -dot(W, position);
+            M[3][3] = 1.0f;
 
             return M;
         }

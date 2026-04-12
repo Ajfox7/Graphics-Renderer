@@ -12,6 +12,7 @@
 
 #include "GLSL.h"
 #include "PerspectiveCamera.h"
+#include "Sphere.h"
 
 int CheckGLErrors(const char *s)
 {
@@ -33,8 +34,8 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     /* Create a windowed mode window and its OpenGL context */
-    int winWidth = 1000;
-    int winHeight = 800;
+    int winWidth = 800;
+    int winHeight = 600;
 
     float aspectRatio = float(winWidth) / float(winHeight);
 
@@ -64,7 +65,7 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glClearColor(1.0, 0.7, 1.0, 1.0);
+    glClearColor(0.529f, 0.808f, 0.922f, 1.0f); 
 
     int fb_width, fb_height;
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
@@ -87,51 +88,65 @@ int main(void)
 
     //Initialize all my data and get it on the GPU
 
-    GLuint m_triangleVBO[1], m_VAO;
+    // Sphere data
+    std::vector<float> sphereVerts;
+    std::vector<unsigned int> sphereIndices;
+    Sphere sphere( 1.0f, vec3(0, 0, 0));
+    sphere.getMeshData(sphereVerts, sphereIndices, 30);
+
     sivelab::GLSLObject shader;
 
-    // create a Vertex Array Buffer to hold our triangle data                                               
-    glGenBuffers(1, m_triangleVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-
-    // this is the actual triangle data that will be copied to                                              
-    // the GPU memory                                                                                       
-    std::vector< float > host_VertexBuffer{ 
-        //position          //Normal
-        -3.0f, -3.0f, 0.0f, 0.0f, 0.0f, 1.0f,                                     
-        3.0f, -3.0f, 0.0f,  0.0f, 0.0f, 1.0f,                                      
-        0.0f, 3.0f, 0.0f,   0.0f, 0.0f, 1.0f
-    };                                     
-
-    int numBytes = host_VertexBuffer.size() * sizeof(float);
-
-    // copy the numBytes from host_VertexBuffer to the GPU and store in                                      
-    // the currently bound VBO                                                                              
-    glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // once copied, we no longer need the data on the host                                                  
-    host_VertexBuffer.clear();
-
-    // create a vertex array object that will map the attributes in                                         
-    // our vertex buffer to different location attributes for our                                           
-    // shaders                                                                                              
+    GLuint m_VBO, m_VAO, m_EBO;
     glGenVertexArrays(1, &m_VAO);
+    glGenBuffers(1, &m_VBO);
+    glGenBuffers(1, &m_EBO);
+
     glBindVertexArray(m_VAO);
 
-    // VAO details here       
-    // Attribute 0: position                                                                      
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sphereVerts.size() * sizeof(float), sphereVerts.data(), GL_STATIC_DRAW);
 
-    // Attribute 1: normal
-    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sphereIndices.size() * sizeof(unsigned int), sphereIndices.data(), GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
 
-    // Create a shader using my GLSLObject class - adjust path as needed.  The shader code is in the same directory as this file.                                                           
+    // Triangle data
+    std::vector<float> triVerts = {
+        // Position (x,y,z)      // Normal (x,y,z)
+        -2.0f, -1.0f, 0.0f,      0.0f, 0.0f, 1.0f,
+        2.0f, -1.0f, 0.0f,      0.0f, 0.0f, 1.0f,
+        0.0f,  2.0f, 0.0f,      0.0f, 0.0f, 1.0f
+    };
+    std::vector<unsigned int> triIndices = { 0, 1, 2 };
+
+    // Create a new VAO/VBO for the Triangle
+    GLuint triVAO, triVBO, triEBO;
+    glGenVertexArrays(1, &triVAO);
+    glGenBuffers(1, &triVBO);
+    glGenBuffers(1, &triEBO);
+
+    glBindVertexArray(triVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, triVBO);
+    glBufferData(GL_ARRAY_BUFFER, triVerts.size() * sizeof(float), triVerts.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, triIndices.size() * sizeof(unsigned int), triIndices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glBindVertexArray(0);
+
+    // Create a shader using my GLSLObject class                                                            
     shader.addShader( "../OpenGL/vertexShader_perFrag.glsl", sivelab::GLSLObject::VERTEX_SHADER );
     shader.addShader( "../OpenGL/fragmentShader_perFrag.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
@@ -155,7 +170,11 @@ int main(void)
 
     glm::mat4 M_normal = glm::transpose(glm::inverse(M_model));
 
-    PerspectiveCamera camera( vec3(0,0,10), vec3(0,0,-1), vec3(0,1,0), aspectRatio, 10.0f, 10.0f, winWidth, winHeight );
+    float imgHeight = 10.0f;
+    float imgWidth = imgHeight * aspectRatio;
+    PerspectiveCamera camera( vec3(0,0,10), vec3(0,0,-1), vec3(0,1,0), 
+                            5.0f, // focalLength (zoom level)
+                            imgWidth, imgHeight, winWidth, winHeight );
 
     glm::mat4 M_proj = camera.getProjectionMatrix(0.1f, 100.0f);
 
@@ -175,33 +194,50 @@ int main(void)
         /* Render your objects here */
         shader.activate();
 
-        // 1. Pass the Light Data
-        glUniform3f(lightPosID, 0.0f, 0.0f, 10.0f);    // light.position
-        glUniform3f(lightIntID, 1.0f, 1.0f, 1.0f);    // light.intensity (White light)
+        // Global Camera/Light Uniforms
+        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(M_proj));
+        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(camera.getViewMatrix()));
+        glUniform3f(lightPosID, 0.0f, 0.0f, 10.0f);
+        glUniform3f(lightIntID, 1.0f, 1.0f, 1.0f);
 
-        // 2. Pass the Material Properties
-        glUniform3f(Ia_ID, 0.2f, 0.2f, 0.2f);         // Ambient intensity
-        glUniform3f(ka_ID, 1.0f, 1.0f, 1.0f);         // Ambient reflection
-        glUniform3f(kd_ID, 0.5f, 1.0f, 1.0f);         // Diffuse reflection
-        glUniform3f(ks_ID, 1.0f, 1.0f, 1.0f);         // Specular reflection (White)
-        glUniform1f(phongExpID, 32.0f);    // Shininess
-
-        M_model = glm::mat4(1.0f);
+        // DRAW SPHERE 1
+        M_model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)); // Move left
         M_model = glm::rotate(M_model, rot, glm::vec3(0, 1, 0));
-        rot += 0.002f;
-        if(rot > 360) rot = 0.0f;
+        M_normal = glm::transpose(glm::inverse(camera.getViewMatrix() * M_model));
 
-        glm::mat4 M_view = camera.getViewMatrix();
-        glm::mat4 MV = M_view * M_model;
-        glm::mat4 M_normal = glm::transpose(glm::inverse(MV));
-        // copy from the host to the device the view matrix and the projection matrix                                                                                       
-        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr( M_proj ));
-        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
-        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr( M_model ));
-        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr( M_normal ));
-
+        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
+        glUniform3f(kd_ID, 0.5f, 1.0f, 1.0f);
+        glUniform3f(ks_ID, 0.0f, 0.0f, 0.0f);
+        glUniform1f(phongExpID, 0.0f); 
         glBindVertexArray(m_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
+
+        // DRAW SPHERE 2 
+        M_model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)); // Move right
+        M_model = glm::scale(M_model, glm::vec3(0.5f)); // Make it smaller
+        M_normal = glm::transpose(glm::inverse(camera.getViewMatrix() * M_model));
+
+        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
+        glUniform3f(kd_ID, 1.0f, 0.5f, 0.5f); 
+        glUniform3f(ks_ID, 1.0f, 1.0f, 1.0f);
+        glUniform1f(phongExpID, 64.0f);
+        glBindVertexArray(m_VAO); 
+        glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
+
+        // DRAW TRIANGLE 
+        M_model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0f)); 
+        M_normal = glm::transpose(glm::inverse(camera.getViewMatrix() * M_model));
+
+        glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
+        glUniform3f(kd_ID, 0.5f, 1.0f, 0.5f); 
+        glUniform3f(ks_ID, 0.0f, 0.0f, 0.0f);
+        glUniform1f(phongExpID, 0.0f);
+        glBindVertexArray(triVAO); 
+        glDrawElements(GL_TRIANGLES, triIndices.size(), GL_UNSIGNED_INT, 0);
+
         glBindVertexArray(0);
 
         shader.deactivate();
@@ -212,7 +248,7 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
 
-        float moveRatePerFrame = 0.05;
+        float moveRatePerFrame = 0.01;
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             camera.moveForward(moveRatePerFrame);

@@ -47,6 +47,25 @@ class Triangle: public Shape {
             return true;
         }
 
+        void getMeshData(std::vector<float>& vertices, std::vector<unsigned int>& indices, int subdivisions = 20) const override {
+            // For a single triangle, we just need to add the three vertices and one triangle
+            vertices.push_back(v0.x());
+            vertices.push_back(v0.y());
+            vertices.push_back(v0.z());
+
+            vertices.push_back(v1.x());
+            vertices.push_back(v1.y());
+            vertices.push_back(v1.z());
+
+            vertices.push_back(v2.x());
+            vertices.push_back(v2.y());
+            vertices.push_back(v2.z());
+
+            indices.push_back(0);
+            indices.push_back(1);
+            indices.push_back(2);
+        }
+
     private:
         point3 v0;
         point3 v1;

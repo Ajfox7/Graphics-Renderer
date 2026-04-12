@@ -10,6 +10,8 @@ class Shape{
 
         virtual bool intersect(const Ray& r,const float tmin, float& tmax, HitRecord& rec) const = 0;
 
+        virtual void getMeshData(std::vector<float>& vertices, std::vector<unsigned int>& indices, int subdivisions = 20) const = 0;
+
         const BoundingBox& getBoundingBox() const {
             return *bbox;
         }

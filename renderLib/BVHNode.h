@@ -72,6 +72,11 @@ class BVHNode : public Shape {
             return hitLeft || hitRight;
         }
 
+        void getMeshData(std::vector<float>& vertices, std::vector<unsigned int>& indices, int subdivisions = 20) const override {
+            left->getMeshData(vertices, indices, subdivisions);
+            right->getMeshData(vertices, indices, subdivisions);
+        }
+
     private:
         static float boxCentroid(const BoundingBox& box, int axis) {
             return 0.5f * (box.llb[axis] + box.urf[axis]);

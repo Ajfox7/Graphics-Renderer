@@ -10,6 +10,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "png++/png.hpp"
+
 #include "GLSL.h"
 #include "PerspectiveCamera.h"
 #include "Sphere.h"
@@ -88,14 +90,50 @@ int main(void)
 
     //Initialize all my data and get it on the GPU
 
-    // Sphere data
+    // Texture Mapping Data
+    std::string texFilename = "../OpenGL/textureAtlas.png";
+    std::cout << "Reading texture map data from file: " << texFilename << std::endl;
+    png::image<png::rgb_pixel> texPNGImage;
+    texPNGImage.read(texFilename);
+
+    int pngWidth = texPNGImage.get_width();
+    int pngHeight = texPNGImage.get_height();
+
+    std::vector<float> texData(pngHeight * pngWidth * 3);
+
+    size_t idx = 0;
+    for (size_t row = 0; row < pngHeight; ++row) {
+        for (size_t col = 0; col < pngWidth; ++col) {
+            png::rgb_pixel pixel = texPNGImage[pngHeight - row - 1][col]; // <-- notice the flip of height!!!
+            texData[idx++] = pixel.red / 255.0f;
+            texData[idx++] = pixel.green / 255.0f;
+            texData[idx++] = pixel.blue / 255.0f;
+        }
+    }
+
+    // Generate an OpenGL texture object and upload the texture data to the GPU
+    GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
+                pngWidth, pngHeight, 
+                0, GL_RGB, GL_FLOAT, texData.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    sivelab::GLSLObject shader;
+
+    /*
+    // Sphere data  
     std::vector<float> sphereVerts;
     std::vector<unsigned int> sphereIndices;
     Sphere sphere( 1.0f, vec3(0, 0, 0));
     sphere.getMeshData(sphereVerts, sphereIndices, 30);
 
-    sivelab::GLSLObject shader;
-
+    
     GLuint m_VBO, m_VAO, m_EBO;
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
@@ -118,15 +156,28 @@ int main(void)
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+    */
 
     // Triangle data
     std::vector<float> triVerts = {
-        // Position (x,y,z)      // Normal (x,y,z)
-        -2.0f, -1.0f, 0.0f,      0.0f, 0.0f, 1.0f,
-        2.0f, -1.0f, 0.0f,      0.0f, 0.0f, 1.0f,
-        0.0f,  2.0f, 0.0f,      0.0f, 0.0f, 1.0f
+        // Position (x,y,z)  // Normal (x,y,z)  // Texture Coords (u,v)
+        -2.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 0.0f,
+        2.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+        2.0f,  2.0f, 0.0f,   0.0f, 0.0f, 1.0f,  1.0f, 0.5f,
+        2.0f,  2.0f, 0.0f,   0.0f, 0.0f, 1.0f,  1.0f, 0.5f,
+        -2.0f,  2.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 0.5f,
+        -2.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 0.0f,
+        2.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,  0.0f, 0.5f,
+        6.0f,  -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 0.5f,
+        6.0f,   2.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 1.0f,
+        6.0f,   2.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 1.0f,
+        2.0f,  2.0f, 0.0f,   0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+        2.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,  0.0f, 0.5f
     };
-    std::vector<unsigned int> triIndices = { 0, 1, 2 };
+    std::vector<unsigned int> triIndices = { 0, 1, 2,
+                                            3, 4, 5,
+                                            6, 7, 8,
+                                            9, 10, 11 };
 
     // Create a new VAO/VBO for the Triangle
     GLuint triVAO, triVBO, triEBO;
@@ -140,15 +191,18 @@ int main(void)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, triIndices.size() * sizeof(unsigned int), triIndices.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    // Set the vertex attribute pointers for position, normal, and texture coordinates
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const GLvoid *)12);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (const GLvoid *)24);
     glBindVertexArray(0);
 
     // Create a shader using my GLSLObject class                                                            
-    shader.addShader( "../OpenGL/vertexShader_perFrag.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "../OpenGL/fragmentShader_perFrag.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.addShader( "OpenGL/Debug/vertexShader_perFrag.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "OpenGL/Debug/fragmentShader_perFrag.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
     shader.createProgram();
 
     // get the uniform variable locations for the projection matrix, view matrix, and model matrix in our shader code
@@ -163,6 +217,12 @@ int main(void)
     GLuint kd_ID = shader.createUniform("kd");
     GLuint ks_ID = shader.createUniform("ks");
     GLuint phongExpID = shader.createUniform("phongExp");
+    GLuint texUnitID = shader.createUniform("textureUnit");
+    
+    // Set the texture uniform to use texture unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glUniform1i(texUnitID, 0);
 
     glm::mat4 M_model = glm::mat4(1.0f);
     float rot = 0.0f;
@@ -199,7 +259,7 @@ int main(void)
         glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(camera.getViewMatrix()));
         glUniform3f(lightPosID, 0.0f, 0.0f, 10.0f);
         glUniform3f(lightIntID, 1.0f, 1.0f, 1.0f);
-
+        /*
         // DRAW SPHERE 1
         M_model = glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0.0f, 0.0f)); // Move left
         M_model = glm::rotate(M_model, rot, glm::vec3(0, 1, 0));
@@ -225,14 +285,14 @@ int main(void)
         glUniform1f(phongExpID, 64.0f);
         glBindVertexArray(m_VAO); 
         glDrawElements(GL_TRIANGLES, sphereIndices.size(), GL_UNSIGNED_INT, 0);
-
+        */
         // DRAW TRIANGLE 
         M_model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -3.0f, 0.0f)); 
         M_normal = glm::transpose(glm::inverse(camera.getViewMatrix() * M_model));
 
         glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(M_model));
         glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(M_normal));
-        glUniform3f(kd_ID, 0.5f, 1.0f, 0.5f); 
+        glUniform3f(kd_ID, 1.0f, 1.0f, 1.0f); 
         glUniform3f(ks_ID, 0.0f, 0.0f, 0.0f);
         glUniform1f(phongExpID, 0.0f);
         glBindVertexArray(triVAO); 

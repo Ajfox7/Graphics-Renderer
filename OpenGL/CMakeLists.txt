@@ -1,5 +1,6 @@
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/renderLib)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 
 add_executable (glfwExample
   glfwExample.cpp 

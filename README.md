@@ -4,8 +4,18 @@ C++ graphics renderer with ray tracing and rastrizing engines. This project uses
 
 - Shapes: Spheres, Triangles
 - Shaders: Lambertian, Blinn-Phong
-- Ray Tracer Exclusive Shaders: Mirror, Diffuse, Emitter
+- Ray Tracer Exclusive Shaders: Mirror, Diffuse, Emitter, Dielectric
 - Additional Features: OpenMP Multithreading, JSON Scene Parsing, Bounding Volume       Hierarchy data structure, OpenGL implementation
+
+## Ray Tracer Arguments
+
+i - input file (json support only)
+o - output file name
+w - width of image
+h - height of image
+a - aspect ratio
+r - strata for per pixel sampling (square root of number of rays per pixel e.g. -r 10 = 100 rays per pixel)
+k - recursion depth
 
 ## Rasterizer Features
 

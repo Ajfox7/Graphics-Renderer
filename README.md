@@ -9,13 +9,13 @@ C++ graphics renderer with ray tracing and rastrizing engines. This project uses
 
 ## Ray Tracer Arguments
 
-i - input file (json support only)
-o - output file name
-w - width of image
-h - height of image
-a - aspect ratio
-r - strata for per pixel sampling (square root of number of rays per pixel e.g. -r 10 = 100 rays per pixel)
-k - recursion depth
+- i - input file (json support only)
+- o - output file name
+- w - width of image
+- h - height of image
+- a - aspect ratio
+- r - strata for per pixel sampling (square root of number of rays per pixel e.g. -r 10 = 100 rays per pixel)
+- k - recursion depth
 
 ## Rasterizer Features
 

@@ -72,6 +72,8 @@ class SceneLoader : public ISceneLoader {
             shader = std::make_shared<Mirror>();
         } else if (shaderDesc.type == "Emitter") {
             shader = std::make_shared<Emitter>(vec3(shaderDesc.emission.data.x, shaderDesc.emission.data.y, shaderDesc.emission.data.z));
+        } else if(shaderDesc.type == "Dielectric"){
+            shader = std::make_shared<Glass>(shaderDesc.refractiveIndex, vec3(shaderDesc.attenuationCoef.x, shaderDesc.attenuationCoef.y, shaderDesc.attenuationCoef.z));
         } else {
             std::cerr << "Unknown shader type: " << shaderDesc.type << ". Defaulting to diffuse." << std::endl;
             shader = std::make_shared<Diffuse>(vec3(shaderDesc.diffuse.data.x, shaderDesc.diffuse.data.y, shaderDesc.diffuse.data.z));

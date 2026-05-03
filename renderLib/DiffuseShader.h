@@ -8,24 +8,14 @@ class Diffuse: public Shader {
         Diffuse(vec3 albedo) : albedo(albedo) {}
 
         vec3 rayColor (const HitRecord& h, const Scene& scene, int depth) const override {
-            vec3 normal = h.normal;
-            vec3 bounceDir;
-
-            while(true){
-                vec3 v = random_in_unit_sphere();
-                float len2 = dot(v, v);
-                if(len2 > 0.0f){
-                    bounceDir = unit_vector(v);
-
-                    if(dot(bounceDir, normal) < 0.0f) {
-                        bounceDir = -bounceDir;
-                    }
-                    break;
-                }
-            }
+           
+            vec3 bounceDir = h.normal + random_unit_vector();
             
-            Ray scattered(h.point + 0.001f * normal, bounceDir);
+            if (bounceDir.near_zero()) {
+                bounceDir = h.normal;
+            }
 
+            Ray scattered(h.point + 0.001f * h.normal, unit_vector(bounceDir));
             return albedo * scene.computeRayColor(scattered, depth);
         }
 };

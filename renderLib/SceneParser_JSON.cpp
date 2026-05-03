@@ -155,25 +155,47 @@ void SceneParser_JSON::parseLight(const json &light) {
   std::string type = light.value("type", light.value("_type", "point"));
   ;
 
-  ISceneLoader::vec position, radiantEnergy;
-  position = light["position"];
-  radiantEnergy = light["intensity"];
+  if (type == "point") {
+    if (!light.contains("position") || !light.contains("intensity")) {
+        std::cerr << "Point light missing required fields: " 
+                      << light.dump(2) << std::endl;
+            return;
+        }
 
+        ISceneLoader::vec position = light["position"];
+        ISceneLoader::vec radiantEnergy = light["intensity"];
+
+        loader->addPointLight(position, radiantEnergy);
+        return;
+    }
   if (type == "area") {
-    position = light["position"];
+        if (!light.contains("position") || !light.contains("normal") ||
+            !light.contains("width") || !light.contains("length") ||
+            !light.contains("intensity")) 
+        {
+            std::cerr << "Area light missing required fields: "
+                      << light.dump(2) << std::endl;
+            return;
+        }
 
-    ISceneLoader::vec normal;
-    normal = light["normal"];
+        ISceneLoader::vec position = light["position"];
+        ISceneLoader::vec normal = light["normal"];
+        ISceneLoader::vec radiantEnergy = light["intensity"];
 
-    float width = 1.0, length = 1.0;
-    width = light["width"];
-    length = light["length"];
+        float width = light["width"];
+        float length = light["length"];
 
-    loader->addAreaLight(position, radiantEnergy, normal, width, length);
-  } else {
-    loader->addPointLight(position, radiantEnergy);
-  }
+        loader->addAreaLight(position, radiantEnergy, normal, width, length);
+        return;
+    }
+
+    if (type == "shape") {
+      parseShape(light);
+      return;
+    }
+    std::cerr << "Unknown light type: " << type << std::endl;
 }
+
 
 ISceneLoader::ShaderProperty
 SceneParser_JSON::extractShaderProperty(const json &shaderParam,
@@ -241,8 +263,8 @@ void SceneParser_JSON::parseShader(const json &shader) {
     float refrIdx;
     ISceneLoader::vec attenCoef;
     shaderDesc.attenuationCoef =
-        shader.value("attenuationCoef", ISceneLoader::vec{1.0f, 1.0f, 1.0f});
-    shaderDesc.refractiveIndex = shader.value("refractiveIndex", 1.0f);
+        shader.value("attenuationCoef", ISceneLoader::vec{0.0f, 0.0f, 0.0f});
+    shaderDesc.refractiveIndex = shader.value("refractiveIndex", 1.5f);
   }
 
   else if (shaderDesc.type == "BlinnPhongMirrored") {
@@ -340,13 +362,34 @@ void SceneParser_JSON::parseShape(const json &shape) {
     shapeDesc.localXForm = glm::mat4(1.0f); // identity matrix
   }
 
-  // shader reference name here...
-  if (shape.contains("shader") && shape["shader"].is_object()) {
-    const auto &shaderObj = shape["shader"];
+  // Detect emitter shapes
+  bool isEmitter = shape.contains("intensity");
 
+  if (isEmitter) {
+    // Create a unique shader name
+    std::string emitterShaderName = shapeDesc.name + "_emitter_shader";
+
+    // Build a ShaderDesc for the emitter
+    ISceneLoader::ShaderDesc shaderDesc;
+    shaderDesc.name = emitterShaderName;
+    shaderDesc.type = "Emitter";
+
+    // Parse intensity as emission
+    shaderDesc.emission = extractShaderProperty(shape, "intensity");
+
+    // Register the shader
+    loader->addShader(shaderDesc);
+
+    // Force this shape to use the emitter shader
+    shapeDesc.shaderNameReference = emitterShaderName;
+  }
+
+  // shader reference name here...
+  if (!isEmitter && shape.contains("shader") && shape["shader"].is_object()) {
+    const auto &shaderObj = shape["shader"];
     if (shaderObj.contains("ref") || shaderObj.contains("_ref")) {
-      shapeDesc.shaderNameReference =
-          shaderObj.value("ref", shaderObj.value("_ref", ""));
+        shapeDesc.shaderNameReference =
+            shaderObj.value("ref", shaderObj.value("_ref", ""));
     }
   }
 

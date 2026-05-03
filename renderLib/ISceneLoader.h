@@ -43,7 +43,7 @@ class ISceneLoader {
             float phongExp = 1.0f;
             float mirrorCoef = 0.0f;
             float roughness = 0.0f;
-            vec attenuationCoef = {1.0f, 1.0f, 1.0f};
+            vec attenuationCoef = {0.0f, 0.0f, 0.0f};
             float refractiveIndex = 1.0f;
         };
 

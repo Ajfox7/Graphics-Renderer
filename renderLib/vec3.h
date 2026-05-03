@@ -38,6 +38,12 @@ class vec3 {
         float length_squared() const {
             return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
         }
+
+        bool near_zero() const {
+            // Return true if the vector is close to zero in all dimensions.
+            const auto s = 1e-8f; // A very small threshold
+            return (fabs(x()) < s) && (fabs(y()) < s) && (fabs(z()) < s);
+        }
 };
 
 // point3 is an alias for geometric clarity
@@ -89,15 +95,22 @@ inline vec3 unit_vector(const vec3& v) {
     return v/ v.length();
 }
 
+inline float random_float() {
+    static thread_local std::mt19937 generator(std::random_device{}());
+    std::uniform_real_distribution<float> distribution(0.0, 1.0);
+    return distribution(generator);
+}
+
 inline vec3 random_in_unit_sphere() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
     while (true) {
-        vec3 p = vec3(dis(gen), dis(gen), dis(gen)) * 2.0f - vec3(1, 1, 1);
-        if (p.length_squared() >= 1) continue;
-        return p;
+        vec3 p = vec3(random_float(), random_float(), random_float()) * 2.0f - vec3(1,1,1);
+        if (p.length_squared() < 1) return p;
     }
 }
+
+inline vec3 random_unit_vector() {
+    return unit_vector(random_in_unit_sphere());
+}
+
 
 #endif
